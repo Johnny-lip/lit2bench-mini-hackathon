@@ -1,0 +1,5 @@
+# helpers/*.py (tested with Python 3.12); api_monitor.py and api_errors.py need only the standard library
+httpx>=0.27
+pandas>=2.2
+numpy>=1.26
+zstandard>=0.22

@@ -1,0 +1,16 @@
+# Pipeline outputs: they hold corpus text (field_papers.jsonl, fulltext_queue.jsonl), which must not be
+# redistributed (DISCLAIMER.md), plus embeddings and API logs. Commit only your final catalogue, copied
+# out of these folders.
+outputs_pipeline_*/
+
+# Corpus data anywhere in the repo (the corpus/ folder has its own .gitignore)
+*.zst
+*.jsonl
+
+# Python, Jupyter, editors, OS
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+.DS_Store

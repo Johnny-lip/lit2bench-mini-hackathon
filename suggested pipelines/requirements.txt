@@ -1,0 +1,13 @@
+# suggested pipelines (pipeline_01.ipynb, pipeline_02.ipynb); tested with Python 3.12
+#   pip install -r requirements.txt
+-r ../helpers/requirements.txt      # pipeline_02: API client, text helpers (httpx, pandas, numpy, zstandard)
+jupyterlab
+# pipeline_01: text cleaning, sentence splitting, embeddings, clustering, topic modelling
+beautifulsoup4
+pylatexenc
+pysbd
+sentence-transformers               # pulls in torch; the embedding model is downloaded on first use
+scikit-learn
+umap-learn
+hdbscan
+bertopic

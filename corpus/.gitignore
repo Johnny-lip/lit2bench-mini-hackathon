@@ -1,0 +1,4 @@
+# corpus files and saved subsets never go into git
+*
+!.gitignore
+!README.md
