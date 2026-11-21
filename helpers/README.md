@@ -28,5 +28,5 @@ Use them from another folder with `sys.path.insert(0, "<path to>/helpers")`. The
 - At most 4 parallel requests per team, always with retry (the client already retries).
 - Default model `gemma-4-31b` with thinking off. Send the abstract plus 2–3 passages, not whole papers;
   at most 2 parallel requests for calls with long texts.
-- `temperature=0` is not deterministic, so keep the cache and submit it with your code.
+- `temperature=0` is not deterministic, so keep the cache: reruns then give the same answers, also offline.
 - Models per step, limits and every error message with its fix: [`../API_NOTES.md`](../API_NOTES.md).

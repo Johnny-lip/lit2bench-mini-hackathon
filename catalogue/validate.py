@@ -57,7 +57,7 @@ ALLOWED["model_code_status"] = ALLOWED["dataset_status"]
 # field values the scorer recognises (case-insensitive); others are ignored by it
 FIELD_NAMES = {"pp", "proton-proton", "proton proton", "pbpb", "pb-pb", "heavy-ion", "heavy ion", "heavy ions",
                "gw", "gravitational waves", "gravitational wave", "gravitational-wave", "mm", "multimessenger",
-               "multi-messenger", "cosmology"}
+               "multi-messenger"}
 
 
 # ---------------------------------------------------------------- reading
@@ -204,7 +204,7 @@ def validate(rows, corpus=None):
             warnings.append(f"{where}: paper_id {r['paper_id']!r} is not an arXiv id, DOI or INSPIRE key")
         if r.get("field") and r["field"].lower() not in FIELD_NAMES:
             warnings.append(f"{where}: field {r['field']!r} is not recognised by the scorer "
-                            "(use pp, PbPb, GW, multimessenger or cosmology)")
+                            "(use pp, PbPb, GW or multimessenger)")
         for st, url in (("dataset_status", "dataset_url"), ("model_code_status", "model_code_url")):
             if r.get(st) == "verified_accessible" and not r.get(url):
                 warnings.append(f"{where}: {st} verified_accessible without {url} (earns no availability points)")

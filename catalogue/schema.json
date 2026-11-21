@@ -36,7 +36,7 @@
         "input_modality": {"type": "string", "minLength": 1, "description": "What goes in"},
         "setting": {"type": "string", "description": "Optional: scientific setting (system, energy, experiment)"},
         "study_type": {"enum": ["experimental", "phenomenological", "methodological", "unspecified"]},
-        "paper_id": {"type": "string", "minLength": 1, "description": "arXiv ID, DOI or INSPIRE key"},
+        "paper_id": {"type": "string", "minLength": 1, "description": "INSPIRE id (INSPIRE:1234567) or arXiv id (arXiv:2101.01234); the ids Codabench finds in the corpus"},
         "paper_url": {"type": "string", "minLength": 1},
         "recid": {"type": ["integer", "string"], "pattern": "^[0-9]+$", "description": "Optional: INSPIRE record id (exact lookup for the quote check and the scorer)"},
         "paper_aliases": {"type": "string", "description": "Optional: further ids of the same study, |-separated"},

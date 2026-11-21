@@ -10,9 +10,10 @@ The API is optional. The lexical baseline alone produces the full deliverable.
 
 - Endpoint: `https://llm.aristote.education/v1`, OpenAI-compatible (LiteLLM proxy). Any OpenAI client works
   with `base_url` set to it.
-- Key: `export ILAAS_API_KEY=...` [KEY DISTRIBUTION AND QUOTA TBD]. The budget belongs to the key and is shared
-  by everyone using it; every response reports it in the headers `x-litellm-key-spend` and
-  `x-litellm-key-max-budget`.
+- Key: each team gets one at the event. Set it with `export ILAAS_API_KEY=...`, or put it in
+  `~/.ilaas_api_key` (`pipeline_02` reads it from there). Keep it out of the repository and out of notebooks.
+  The budget belongs to the key and is shared by your whole team; every response reports it in the headers
+  `x-litellm-key-spend` and `x-litellm-key-max-budget`.
 - Check:
 
   ```
@@ -85,7 +86,7 @@ not get better, the cost tripled and every call took 2–4× as long.
 | Largest request | ~1 MiB request body ≈ 950 000 characters ≈ 225 000 tokens. Accepted doesn't mean read carefully, and long prompts are slow and load the server for everyone (above). |
 | Cost | gemma ≈ 0.02 and qwen-3.8 ≈ 0.05 budget units per million tokens; llama, `bge-m3` and the reranker report cost 0. One full pipeline run (~400 calls) with gemma: ≈ 0.011 (≈ 0.03 with reasoning). |
 | Rate-limit headers | `x-ratelimit-*` appear only sometimes and don't reset predictably; don't throttle on them. |
-| Reproducibility | `temperature=0` is **not** deterministic. Cache every response and submit the cache with your code. |
+| Reproducibility | `temperature=0` is **not** deterministic. Cache every response, so that you can rerun your notebook with the same answers (and offline). |
 
 ## Errors
 

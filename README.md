@@ -8,8 +8,8 @@
 | **Half-day 1** | Tuesday 24 Nov · 9:30–12:30 |
 | **Half-day 2** | Thursday 26 Nov · 9:30–12:30 |
 | **Organizers** | Dr. João A. Gonçalves · Romina Raoofian · Justus Mairböck (University of Bonn · B-IT / Lamarr Institute) |
-| **Contact** | \[EMAIL TBD\] |
-| **Submission** | Thursday 26 Nov, 12:30 (end of Block 4) · via \[FOLDER / FORM / REPOSITORY TBD\] |
+| **Contact** | jagoncalves@uni-bonn.de · s28rraoo@uni-bonn.de · s6jumair@uni-bonn.de |
+| **Submission** | Thursday 26 Nov, 12:30 (end of Block 4) · your catalogue on Codabench: <https://www.codabench.org/competitions/18675/> |
 
 ## Getting Started
 
@@ -151,7 +151,7 @@ Pick one or combine:
 
 ### Goal
 
-Verify enough task–paper matches to meet the minimum success criterion, investigate one task in depth, and produce a clean, submittable catalogue with a short error report.
+Verify enough task–paper matches to meet the minimum success criterion, investigate one task in depth, and produce a clean, submittable catalogue.
 
 ### Possible approaches
 
@@ -168,15 +168,14 @@ Pick one or combine:
 - Meet the minimum first (two tasks, one or two `supported` papers each), then go deeper.
 - A `supported` row needs a quoted `evidence_text`, a `match_rationale` and `review_status: human_reviewed`; an LLM answer alone never counts.
 - Record `study_type` for each verified paper.
-- Write 3–5 bullets on what your method got wrong: false positives, missed papers, too-broad task labels, miscounted duplicates.
 
 ### Checkpoint: minimum success checklist
 
 - [ ] At least 2 distinct `task_id` values in the catalogue
 - [ ] Each has at least 1 row with `decision: supported` and `review_status: human_reviewed`
 - [ ] `paper_id` and `paper_url` present and non-duplicated (check `study_group_id`)
-- [ ] CSV/JSON exported with every required field; notebook/script runs end to end
-- [ ] Short error report (3–5 bullets)
+- [ ] CSV/JSON exported with every required field and checked with `catalogue/validate.py`
+- [ ] Submitted on Codabench
 
 ## Application Areas
 
@@ -188,7 +187,6 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 | **PbPb / heavy ion** | Distinct from pp — quark–gluon plasma context | Collective-flow observables, jet quenching, particle spectra |
 | **Gravitational waves** | Detection ≠ parameter estimation — different inputs and metrics | Signal/noise classification; mass/spin/sky-location regression |
 | **Multimessenger** | Multi-messenger signals combined; small pool (3,777 papers, about half also in GW), so add INSPIRE categories | Cross-messenger association, source classification |
-| **Cosmology** *(extension)* | Check corpus coverage first **\[TODO\]** | Weak lensing, large-scale structure, CMB |
 
 ## Tools, Data and Technical Setup
 
@@ -198,7 +196,7 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 
   **Most records have no topic.** 1,776,258 of 1,894,408 records (93.8 %) have an empty `topics` column, so the four pools together cover only about 6 % of the corpus. INSPIRE categories cover far more: more than 99.5 % of records from 2010 on have one, while about a third of the records before 2000 have none. A category selection therefore reaches papers that no pool contains, but categories don't separate pp from PbPb or GW from multimessenger, so check the area of each hit.
 - **Starter code** — in the lit2bench-mini-hackathon repository, helpers/: corpus\_extract.py (select papers by topic pool and/or INSPIRE category, stream metadata and full text, save a subset), ilaas\_client.py (API client with retries, response cache and budget logging), api\_monitor.py (live view of calls, errors with fixes, budget) and textutils.py (clean LaTeX, check quotes). Suggested pipelines in suggested pipelines/: pipeline\_01.ipynb (laptop only) and pipeline\_02.ipynb (with the LLM API), guidelines with gaps to fill that follow Blocks 1–4. catalogue/ holds the catalogue format (schema.json, example.json) and validate.py.
-- **API to open-source LLMs** — open-source models behind an OpenAI-compatible endpoint. Default model gemma-4-31b with thinking off; at most 4 parallel requests per team; at most 2 for calls with long texts; client timeout 300 s by default, 600 s for long texts; after a timeout wait ≥ 30 s before retrying (the server keeps working on, and bills, requests you gave up on); cache every response (ILAAS\_CACHE=1 with the client in helpers/ilaas\_client.py), because temperature 0 is not deterministic and the cache lets you rerun offline. Models, limits and error messages: API\_NOTES.md in the repository. Base URL: `https://llm.aristote.education/v1`; put your key in `ILAAS_API_KEY`. \[ACCESS KEY AND QUOTA TBD\] Example — list the available models:
+- **API to open-source LLMs** — open-source models behind an OpenAI-compatible endpoint. Default model gemma-4-31b with thinking off; at most 4 parallel requests per team; at most 2 for calls with long texts; client timeout 300 s by default, 600 s for long texts; after a timeout wait ≥ 30 s before retrying (the server keeps working on, and bills, requests you gave up on); cache every response (ILAAS\_CACHE=1 with the client in helpers/ilaas\_client.py), because temperature 0 is not deterministic and the cache lets you rerun offline. Models, limits and error messages: API\_NOTES.md in the repository. Base URL: `https://llm.aristote.education/v1`; put your key in `ILAAS_API_KEY`. Each team gets a key at the event; don't commit it. Example — list the available models:
 
   ```bash
   curl -sS https://llm.aristote.education/v1/models \
@@ -211,11 +209,17 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 
 ## Deliverable Specification
 
-Submit **three things** by the end of Block 4:
+Submit **one file: your catalogue**, by the end of Block 4, on Codabench: <https://www.codabench.org/competitions/18675/>.
 
-1. A **runnable notebook or script** that reproduces your retrieval and grouping method, with your saved LLM responses if you used the API (the client's `cache/` folder, e.g. `outputs_pipeline_02/api_logs/cache/`; the repository's .gitignore leaves it out, so include it on purpose)
-2. A **CSV or JSON catalogue** organised as task → papers, following the schema below: one row per task–paper pair, as CSV, as a JSON list of rows, or as JSON {"tasks": \[{…, "papers": \[rows\]}\]}; check it with catalogue/validate.py
-3. A **short error report** (3–5 bullets) on what your method got wrong and why
+The catalogue is organised as task → papers, following the schema below: one row per task–paper pair, as CSV, as a JSON list of rows, or as JSON `{"tasks": [{…, "papers": [rows]}]}`. Check it with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers).
+
+**How to submit** (also under "How to submit" on Codabench):
+
+1. Export your catalogue in the handout format: one row per task–paper pair, as `.json` or `.csv`.
+2. Put that one file in a `.zip`, with the file at the top level of the zip.
+3. Upload the zip under **My Submissions**. Up to 5 submissions per day.
+
+The result page shows your score, which of your tasks matched a reference task, and rows with problems (missing paper id, missing evidence, an id that is not in the corpus). It does not show the reference.
 
 ### Required catalogue fields (every row)
 
@@ -229,7 +233,7 @@ Submit **three things** by the end of Block 4:
 | `observable_or_target` | What is predicted or measured | Use `unknown` only when source is genuinely insufficient |
 | `input_modality` | What goes in |  |
 | `study_type` | `experimental` / `phenomenological` / `methodological` / `unspecified` | Where relevant; otherwise `unspecified` |
-| `paper_id` | Paper identifier (arXiv ID, DOI, or INSPIRE key) |  |
+| `paper_id` | Paper identifier: INSPIRE id (`INSPIRE:1234567`) or arXiv id (`arXiv:2101.01234`) | These are the ids Codabench finds in the corpus |
 | `paper_url` | Direct link to paper |  |
 | `study_group_id` | Groups duplicate versions of the same study |  |
 | `match_rationale` | Why this study supports a potential benchmark for this FM scope | Required for every row |
@@ -290,8 +294,6 @@ A counted match needs an identifiable source (paper ID + link), a quoted passage
 | Verified task–paper matches | Checked against organizer reference cases; additional valid matches accepted after manual validation |
 | Distinct tasks supported | Count of tasks with at least one correct match |
 | Evidence correctness | Passages exist in the text and genuinely support the interpretation |
-| Error analysis | Short account of what your method got wrong and why |
-| Reproducibility | Can the organizer run your notebook/script and reproduce your results? |
 
 ### What is not penalized
 
@@ -315,5 +317,5 @@ An `uncertain` record is a valid catalogue entry — never guess `supported` whe
 | --- | --- |
 | **Repository** | lit2bench-mini-hackathon repository: suggested pipelines/, helpers/ (README), catalogue/ (format and validator) · <https://github.com/Johnny-lip/lit2bench-mini-hackathon/> |
 | **Corpus and index** | corpus/README.md in the repository · download: <https://uni-bonn.sciebo.de/s/k3P5XLx4iRnj6JL> |
-| **LLM API endpoint** | <https://llm.aristote.education/v1> · access key \[TBD\] |
+| **LLM API endpoint** | <https://llm.aristote.education/v1> · key: one per team, handed out at the event |
 | **API notes** | API\_NOTES.md in the repository: models per step, settings, limits, error messages and fixes |
