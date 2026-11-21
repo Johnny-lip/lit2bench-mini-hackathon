@@ -9,7 +9,7 @@
 | **Half-day 2** | Thursday 26 Nov · 9:30–12:30 |
 | **Organizers** | Dr. João A. Gonçalves · Romina Raoofian · Justus Mairböck (University of Bonn · B-IT / Lamarr Institute) |
 | **Contact** | jagoncalves@uni-bonn.de · s28rraoo@uni-bonn.de · s6jumair@uni-bonn.de |
-| **Submission** | Thursday 26 Nov, 12:30 (end of Block 4) · your catalogue on Codabench: <https://www.codabench.org/competitions/18675/> |
+| **Submission** | Thursday 26 Nov, 16:00 Paris time · your catalogue on Codabench: <https://www.codabench.org/competitions/18675/> |
 
 ## Getting Started
 
@@ -209,7 +209,7 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 
 ## Deliverable Specification
 
-Submit **one file: your catalogue**, by the end of Block 4, on Codabench: <https://www.codabench.org/competitions/18675/>.
+Submit **one file: your catalogue**, by 16:00 Paris time on Thursday 26 Nov, on Codabench: <https://www.codabench.org/competitions/18675/>.
 
 The catalogue is organised as task → papers, following the schema below: one row per task–paper pair, as CSV, as a JSON list of rows, or as JSON `{"tasks": [{…, "papers": [rows]}]}`. Check it with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers).
 
