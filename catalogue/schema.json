@@ -28,12 +28,12 @@
       "properties": {
         "team": {"type": "string"},
         "field": {"type": "string", "minLength": 1, "description": "Application area / scientific field, e.g. pp, PbPb, GW, multimessenger. Do not collapse pp/PbPb"},
-        "fm_scope": {"type": "string", "minLength": 1, "description": "Intended foundation-model input/context"},
-        "task_id": {"type": "string", "minLength": 1, "description": "Stable short identifier, e.g. jet_classification_pp"},
+        "fm_scope": {"type": "string", "minLength": 1, "description": "Intended foundation-model application or input family for this study"},
+        "task_id": {"type": "string", "minLength": 1, "description": "Stable ID for one prediction objective within its field, shared across study inputs and models"},
         "task_label": {"type": "string", "minLength": 1},
         "task_type": {"enum": ["classification", "regression", "reconstruction", "detection", "parameter estimation", "generation", "other"]},
-        "observable_or_target": {"type": "string", "minLength": 1, "description": "What is predicted or measured; unknown only when the source is genuinely insufficient"},
-        "input_modality": {"type": "string", "minLength": 1, "description": "What goes in"},
+        "observable_or_target": {"type": "string", "minLength": 1, "description": "Scientific output: the label, quantity (with units when applicable), or object predicted; use unknown if the source is insufficient"},
+        "input_modality": {"type": "string", "minLength": 1, "description": "Observations or features supplied to the model in this particular paper"},
         "setting": {"type": "string", "description": "Optional: scientific setting (system, energy, experiment)"},
         "study_type": {"enum": ["experimental", "phenomenological", "methodological", "unspecified"]},
         "paper_id": {"type": "string", "minLength": 1, "description": "INSPIRE id (INSPIRE:1234567) or arXiv id (arXiv:2101.01234); the ids Codabench finds in the corpus"},
@@ -54,8 +54,8 @@
         "model_code_status": {"$ref": "#/$defs/status"},
         "model_code_url": {"type": "string"},
         "model_code_name": {"type": "string"},
-        "metric": {"type": "string"},
-        "reported_result": {"type": "string"},
+        "metric": {"type": "string", "description": "Evaluation measure for the output, such as AUROC or mean absolute error"},
+        "reported_result": {"type": "string", "description": "Reported value of the evaluation metric, including units and uncertainty when given"},
         "evaluation_setting": {"type": "string"},
         "review_comment": {"type": "string"}
       }

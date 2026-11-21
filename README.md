@@ -19,7 +19,7 @@ What is in this repository:
 | --- | --- |
 | [`suggested pipelines/`](suggested%20pipelines/) | `pipeline_01.ipynb` (laptop only) and `pipeline_02.ipynb` (with the LLM API): guidelines with gaps to fill that follow Blocks 1–4 |
 | [`helpers/`](helpers/) | Corpus access, API client, API monitor, text cleaning and quote check ([README](helpers/README.md)) |
-| [`catalogue/`](catalogue/) | Catalogue format (`schema.json`), two example tasks (`example.json`) and `validate.py` |
+| [`catalogue/`](catalogue/) | Catalogue format (`schema.json`), worked input/output examples (`example.json`) and `validate.py` |
 | [`corpus/`](corpus/) | Where the downloaded corpus goes ([README](corpus/README.md)) |
 | [`API_NOTES.md`](API_NOTES.md) | LLM API: models, settings, limits, error messages and fixes |
 | [`DISCLAIMER.md`](DISCLAIMER.md) | Terms of use of the corpus: research within the hackathon only; don't share or commit any part of it |
@@ -41,13 +41,27 @@ Physics has established measurements and studies — but no automated, reproduci
 
 Build, run and deploy your team’s literature-search tool from the starter repository. Define each task by **what the model predicts in your chosen field**. Record each supporting study’s input, model and evaluation setting so another team can interpret its result.
 
+### What goes in and what comes out?
+
+Your **search tool** reads titles, abstracts and, when needed, full text from the corpus. It returns paper IDs ranked for each candidate task. After checking the evidence, submit **one CSV or JSON catalogue in a ZIP**, with one row per task–paper pair. Within each row, describe the input and output of the **physics model studied in that paper**.
+
+| Input to the physics model (`input_modality`) | Predicted output (`observable_or_target`) | Task ID within GW |
+| --- | --- | --- |
+| Detector strain time series | Signal present or absent | `gw_transient_detection` |
+| Time–frequency map of the strain | Signal present or absent | `gw_transient_detection` |
+| Detector strain time series | Remnant black hole mass (solar masses) | `gw_remnant_mass` |
+
+The first two rows share an output and a task ID. The third uses the same observations to answer a different question. For ML studies, record how the prediction was evaluated in `metric`, and the value and conditions in `reported_result` and `evaluation_setting`. For example, a mass in solar masses is a physical output; a mean absolute error in solar masses is a performance metric.
+
+The [worked catalogue](catalogue/example.json) applies this grouping to published GW and PbPb measurements. Those particular analyses illustrate the format and are marked `excluded` for ML credit. Running the validator on this example reports a valid format and an unmet passing minimum. A supported submission needs a checked paper that evaluates ML on the task.
+
 ## Block 1 — Tuesday · Setup and Orientation
 
 **Duration:** \~1 hour · **Half-day 1, opening block**
 
 ### Goal
 
-Every team member can load the corpus, run the setup of the suggested pipeline (`suggested pipelines/pipeline_01.ipynb`), and read the two example tasks in `catalogue/example.json`. You should understand what a correct task–paper match looks like before moving on.
+Every team member can load the corpus, run the setup of the suggested pipeline (`suggested pipelines/pipeline_01.ipynb`), and read the worked rows in `catalogue/example.json`. Trace one study’s input to its output and check whether the paper evaluates ML on that task.
 
 ### Possible approaches
 
@@ -68,7 +82,7 @@ Pick one or combine:
 ### Checkpoint: end of Block 1
 
 - [ ] Pipeline 1 setup runs and the corpus is queryable
-- [ ] Candidate task in mind (name, input, prediction target)
+- [ ] Candidate task named by field and predicted output; one paper’s input recorded
 
 ---
 
@@ -102,7 +116,7 @@ Pick one or combine:
 
 ### Checkpoint: end of Block 2 (= end of Tuesday)
 
-- [ ] At least two distinct tasks, each with name, area, input modality and prediction target
+- [ ] At least two distinct prediction objectives in your field, with each study’s input recorded on its own row
 - [ ] Candidate list of 50–200 papers per task, each with a provisional decision
 - [ ] Query / method log saved
 
@@ -185,7 +199,7 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 | --- | --- | --- |
 | **pp collisions** | Distinct from PbPb — different physics and evaluation setting | Jet tagging, jet-energy regression |
 | **PbPb / heavy ion** | Distinct from pp — quark–gluon plasma context | Collective-flow observables, jet quenching, particle spectra |
-| **Gravitational waves** | Detection ≠ parameter estimation — different inputs and metrics | Signal/noise classification; mass/spin/sky-location regression |
+| **Gravitational waves** | The same strain can support signal detection or mass estimation; those outputs define different tasks | Signal/noise classification; mass/spin/sky-location regression |
 | **Multimessenger** | Multi-messenger signals combined; small pool (3,777 papers, about half also in GW), so add INSPIRE categories | Cross-messenger association, source classification |
 
 ## Tools, Data and Technical Setup
@@ -226,12 +240,12 @@ The result page gives a **provisional score** and flags issues such as missing p
 | Field | Meaning | Notes |
 | --- | --- | --- |
 | `field` | Application area / Scientific field (e.g. `pp`, `PbPb`, `GW`, `multimessenger`) | Do not collapse pp/PbPb |
-| `fm_scope` | Intended foundation-model input/context | E.g. `particle-level jet constituents` |
-| `task_id` | Stable short identifier for the task | E.g. `jet_classification_pp` |
-| `task_label` | Human-readable task name |  |
+| `fm_scope` | Foundation-model context relevant to this study | Describe the intended application or input family |
+| `task_id` | Identifier shared by studies with the same field and prediction objective | E.g. `pp_quark_gluon_tagging` |
+| `task_label` | Human-readable task name | Name the prediction objective |
 | `task_type` | `classification` / `regression` / `reconstruction` / `detection` / `parameter estimation` / `generation` / `other` |  |
-| `observable_or_target` | What is predicted or measured | Use `unknown` only when source is genuinely insufficient |
-| `input_modality` | What goes in |  |
+| `observable_or_target` | Physics output: the label, quantity or object being predicted | Give units for a quantity; use `unknown` when the source is insufficient |
+| `input_modality` | The observations or features supplied to the model in this paper | May differ between studies with the same task ID |
 | `study_type` | `experimental` / `phenomenological` / `methodological` / `unspecified` | Where relevant; otherwise `unspecified` |
 | `paper_id` | Paper identifier: INSPIRE id (`INSPIRE:1234567`) or arXiv id (`arXiv:2101.01234`) | These are the ids Codabench finds in the corpus |
 | `paper_url` | Direct link to paper |  |
@@ -256,11 +270,11 @@ Also optional: `team` (your team name), `setting` (scientific setting: system, e
 ```
 field: pp
 fm_scope: particle-level jet constituents
-task_id: jet_classification_pp
-task_label: Jet tagging / classification in pp collisions
+task_id: pp_quark_gluon_tagging
+task_label: Distinguish quark jets from gluon jets in pp collisions
 task_type: classification
-observable_or_target: jet label (quark/gluon or flavour)
-input_modality: particle-level jet constituents
+observable_or_target: quark or gluon label for an individual jet
+input_modality: four-momenta of the particles in each jet
 study_type: methodological
 paper_id: arXiv:XXXX.XXXXX
 paper_url: https://arxiv.org/abs/XXXX.XXXXX

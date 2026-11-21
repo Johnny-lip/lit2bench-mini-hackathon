@@ -1,16 +1,13 @@
 {
   "team": "example",
-  "note": "Illustration of the format only; not part of the reference result. The papers, quotes and numbers are real; retrieval_method is made up.",
+  "note": "Worked format example using published measurements. The four rows are excluded from ML credit because the cited analyses do not demonstrate ML performance for these outputs. Only team-checked studies that evaluate ML can support a pass.",
   "tasks": [
     {
-      "task_id": "gw_bbh_transient_detection",
-      "task_label": "Detect a binary black hole merger signal in gravitational-wave strain data",
+      "task_id": "gw_transient_detection",
+      "task_label": "Detect a transient gravitational-wave signal",
       "field": "GW",
-      "fm_scope": "gravitational-wave strain time series from a detector network",
       "task_type": "detection",
-      "observable_or_target": "presence of a compact binary coalescence signal and its significance (false alarm rate)",
-      "input_modality": "calibrated strain time series of the LIGO detectors",
-      "setting": "LIGO Hanford and Livingston, transient searches, binary black hole coalescence",
+      "observable_or_target": "presence of a transient gravitational-wave signal rather than detector noise",
       "papers": [
         {
           "paper_id": "arXiv:1602.03837",
@@ -19,15 +16,61 @@
           "title": "Observation of Gravitational Waves from a Binary Black Hole Merger",
           "study_type": "experimental",
           "study_group_id": "sg_1421100",
-          "match_rationale": "Searches LIGO strain data for a binary black hole signal and reports its detection significance, the target of the task.",
-          "evidence_text": "The signal was observed with a matched-filter signal-to-noise ratio of 24 and a false alarm rate estimated to be less than 1 event per 203 000 years",
+          "match_rationale": "The matched-filter search detects GW150914. Its reported false-alarm rate assesses detection significance; this analysis supplies no trained-model performance.",
+          "evidence_text": "a matched-filter signal-to-noise ratio of 24",
           "evidence_location": "abstract",
-          "decision": "supported",
+          "decision": "excluded",
           "review_status": "human_reviewed",
-          "retrieval_method": "lexical, query family: gravitational wave AND (detection OR observation)",
-          "dataset_status": "mentioned_unverified",
-          "metric": "signal-to-noise ratio, false alarm rate",
-          "reported_result": "SNR 24, false alarm rate < 1 per 203 000 years"
+          "retrieval_method": "Organizer-selected published measurement for the format example.",
+          "metric": "matched-filter SNR and false-alarm rate (search statistics)",
+          "reported_result": "SNR 24, false alarm rate < 1 per 203 000 years",
+          "input_modality": "calibrated strain time series from LIGO Hanford and Livingston",
+          "fm_scope": "gravitational-wave detector observations",
+          "setting": "LIGO Hanford and Livingston, transient searches, binary black hole coalescence",
+          "evaluation_setting": "GW150914, matched-filter search"
+        },
+        {
+          "paper_id": "arXiv:1602.03843",
+          "paper_url": "https://arxiv.org/abs/1602.03843",
+          "recid": 1421137,
+          "title": "Observing gravitational-wave transient GW150914 with minimal assumptions",
+          "study_type": "methodological",
+          "study_group_id": "sg_1421137",
+          "fm_scope": "gravitational-wave detector observations",
+          "input_modality": "time-frequency power map constructed from whitened strain in both LIGO detectors",
+          "setting": "GW150914, coherent WaveBurst (cWB) search",
+          "match_rationale": "The cWB search detects a transient using coherent excess power. This is the same detection objective as the matched-filter search, with a different representation. The cited cWB analysis evaluates a search statistic.",
+          "evidence_text": "These searches identify time-correlated transients in multiple detectors",
+          "evidence_location": "abstract; cWB input described in the section titled “cWB pipeline overview”",
+          "decision": "excluded",
+          "review_status": "human_reviewed",
+          "retrieval_method": "Organizer-selected published measurement for the format example."
+        }
+      ]
+    },
+    {
+      "task_id": "gw_remnant_mass",
+      "task_label": "Estimate the remnant black hole mass",
+      "field": "GW",
+      "task_type": "parameter estimation",
+      "observable_or_target": "source-frame mass of the remnant black hole (solar masses)",
+      "papers": [
+        {
+          "paper_id": "arXiv:1602.03837",
+          "paper_url": "https://arxiv.org/abs/1602.03837",
+          "recid": 1421100,
+          "title": "Observation of Gravitational Waves from a Binary Black Hole Merger",
+          "study_type": "experimental",
+          "study_group_id": "sg_1421100",
+          "fm_scope": "gravitational-wave detector observations",
+          "input_modality": "calibrated strain time series from LIGO Hanford and Livingston",
+          "decision": "excluded",
+          "review_status": "human_reviewed",
+          "retrieval_method": "Organizer-selected published measurement for the format example.",
+          "setting": "GW150914, inference from binary black hole waveform models",
+          "match_rationale": "This analysis infers a remnant mass of 62 solar masses, with a 90% credible interval of 58–66 solar masses. Mass is the inferred output. The credible interval describes uncertainty on that event; it is not a trained model’s prediction error.",
+          "evidence_text": "the final black hole mass is 62+4−4M⊙",
+          "evidence_location": "abstract (source-frame masses and 90% credible intervals)"
         }
       ]
     },
@@ -35,11 +78,8 @@
       "task_id": "pbpb_dijet_imbalance_centrality",
       "task_label": "Dijet transverse-momentum imbalance as a function of PbPb collision centrality",
       "field": "PbPb",
-      "fm_scope": "calorimeter jets in heavy-ion collisions",
-      "task_type": "regression",
-      "observable_or_target": "dijet momentum imbalance distribution versus centrality",
-      "input_modality": "reconstructed calorimeter jets (leading and subleading jet pT)",
-      "setting": "PbPb collisions at sqrt(s_NN) = 2.76 TeV, CMS, jets above 120 GeV/c",
+      "task_type": "other",
+      "observable_or_target": "distribution of the dijet transverse-momentum asymmetry in bins of collision centrality",
       "papers": [
         {
           "paper_id": "arXiv:1102.1957",
@@ -47,12 +87,15 @@
           "recid": 889010,
           "study_type": "experimental",
           "study_group_id": "sg_889010",
-          "match_rationale": "Measures the dijet momentum imbalance in PbPb collisions as a function of centrality, the target of the task.",
-          "evidence_text": "With increasing collision centrality, a striking imbalance in dijet transverse momentum is observed, consistent with jet quenching.",
+          "match_rationale": "CMS measures the imbalance of the two jets across centrality bins. The passage establishes a measurement; it does not evaluate a trained regressor.",
+          "evidence_text": "a striking imbalance in dijet transverse momentum is observed",
           "evidence_location": "abstract",
-          "decision": "supported",
+          "decision": "excluded",
           "review_status": "human_reviewed",
-          "retrieval_method": "lexical, query family: (PbPb OR lead-lead) AND dijet AND (imbalance OR asymmetry)"
+          "retrieval_method": "Organizer-selected published measurement for the format example.",
+          "input_modality": "leading and subleading reconstructed calorimeter-jet transverse momenta, with a collision centrality estimate",
+          "fm_scope": "calorimeter jets in heavy-ion collisions",
+          "setting": "CMS PbPb collisions at 2.76 TeV per nucleon pair, leading jet transverse momentum above 120 GeV/c"
         }
       ]
     }
