@@ -32,14 +32,14 @@ pip install -r "suggested pipelines/requirements.txt"       # includes helpers/r
 export ILAAS_API_KEY=...                                     # only for the LLM API
 ```
 
-Download the corpus into `corpus/` (link and layout in [corpus/README.md](corpus/README.md)); one decade is enough to start.
+Download one decade of the corpus into `corpus/` to get started. João will give the password during Monday’s briefing. [Download and directory layout](corpus/README.md)
 Check a catalogue with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers).
 
 ## What This Hackathon Is About
 
 Physics has established measurements and studies — but no automated, reproducible way to extract downstream task candidates for foundation models from that literature. That is what this hackathon is designed to build: starting from a prepared corpus, your team identifies candidate benchmark tasks, links each to supporting papers, and documents the evidence. The result is a **task → papers catalogue** that future benchmark builders can use.
 
-**What you are NOT doing:** training a foundation model or constructing a complete benchmark suite. **The key distinction throughout:** a paper *about* a topic is not automatically a paper that *establishes a benchmark task*. A task has a defined input modality, a defined prediction target and a scientific setting (e.g. *particle-level jet constituents → jet label*); a topic is not a task. Your job is to make that distinction explicit and defensible.
+Build, run and deploy your team’s literature-search tool from the starter repository. Define each task by **what the model predicts in your chosen field**. Record each supporting study’s input, model and evaluation setting so another team can interpret its result.
 
 ## Block 1 — Tuesday · Setup and Orientation
 
@@ -61,9 +61,9 @@ Pick one or combine:
 ### Pay attention to
 
 - A paper that *performs* a task is not the same as one that merely *discusses* it.
-- A task = input modality + prediction target + scientific setting; a topic is not a task.
+- Use one task ID for studies with the same prediction objective in the same field, even when their inputs or models differ.
 - Abstracts contain LaTeX, MathML and HTML: clean them before searching or prompting (`strip_latex()` in `helpers/textutils.py`), or keyword hits and quote checks fail.
-- The two example tasks in `catalogue/example.json` do not count toward the minimum.
+- The examples in `catalogue/example.json` illustrate the format. A worked example can count toward your pass when your team checks the paper, records its own evidence and João approves the entry.
 
 ### Checkpoint: end of Block 1
 
@@ -92,11 +92,11 @@ Pick one or combine:
 
 ### Pay attention to
 
-- **Group by task, not topic.** Note `fm_scope`, `input_modality` and `observable_or_target` per task; never merge pp with PbPb, or GW detection with parameter estimation.
+- **Group by prediction target within your field.** Record `fm_scope`, `input_modality` and `observable_or_target` for each task–paper pair. Keep pp and PbPb separate, and distinguish GW detection from parameter estimation.
 - A paper can carry more than one task label when it genuinely performs several tasks; it then gets one catalogue row per task.
 - Generic terms like *"classification"* over-assign; look for main-contribution phrasing.
 - Don't hard-exclude a paper just because it compares several tasks or uses vocabulary from more than one area; mark it `uncertain` instead.
-- Some tasks appear without ML wording (plain measurement studies) — a filtered pool can miss them.
+- A measurement paper can suggest a search term. For a supported match, find a study that evaluates a model on that prediction task and reports a numerical result.
 - Keep the list small enough to review; mark each paper `candidate`, `supported`, `uncertain` or `excluded`.
 - Log every query or method — you need it Thursday and for `retrieval_method`.
 
@@ -127,11 +127,11 @@ Pick one or combine:
 - **Embedding re-ranking** — score candidates by similarity to a written task description.
 - **Task clustering** — embed each title with the sentences that say what the paper does ("we propose …"), cluster hierarchically (try a few distance thresholds) and name each cluster by its TF-IDF keywords minus area and method words; keep the clusters that share one task.
 - **LLM screening** — let the LLM API pre-sort abstracts into `candidate` / `uncertain` / `excluded`, kept as `automated_proposal`. LLMs tend to give confident answers and rarely say uncertain on their own; consider running two prompt variants and marking papers where they disagree as uncertain.
-- **Manual triage** — rank by title alone; a focused lexical baseline is enough to reach the minimum.
+- **Manual triage** — use titles to rank candidates, then read the most promising studies to check the evidence.
 
 ### Pay attention to
 
-- Merge wording variants only when input, target and scientific setting align.
+- Group studies with the same prediction objective under one task. Compare their results by metric, recording differences in inputs, models and evaluation settings.
 - Group versions of the same study under one `study_group_id`; never count a study twice.
 - Compare any new method against Tuesday's baseline on the same candidates, and record what changed and why.
 - The queue holds 20–50 papers per task: your `uncertain` and most promising `candidate` papers.
@@ -157,7 +157,7 @@ Verify enough task–paper matches to meet the minimum success criterion, invest
 
 Pick one or combine:
 
-- **Close reading** — title and abstract first; open the full text only where the match is still unclear.
+- **Close reading** — start with the title and abstract, then check the methods and results for the prediction target, metric and numerical value.
 - **LLM-assisted verification** — send the task description + 2–3 selected passages (\~2k tokens; not the whole paper: long prompts from many teams overload the shared server) to the LLM API and get back a decision with a quoted passage, kept as `automated_proposal` until you confirm it. Ask for one contiguous verbatim quote and check that it occurs in the text (`quote_match()` in `helpers/textutils.py`); if the full-text verdict disagrees with the abstract screening, mark the row uncertain.
 - **Passage search** — keyword or embedding search inside the full text to locate the evidence sentence quickly.
 - **Depth comparison** — for one task, line up 3–5 papers by input, metric and result to see where evidence is strong or ambiguous.
@@ -165,7 +165,7 @@ Pick one or combine:
 ### Pay attention to
 
 - **No new infrastructure in this block** — use what you have; the catalogue is the deliverable.
-- Meet the minimum first (two tasks, one or two `supported` papers each), then go deeper.
+- Start with two distinct tasks and at least one checked supporting paper per task, then add further studies.
 - A `supported` row needs a quoted `evidence_text`, a `match_rationale` and `review_status: human_reviewed`; an LLM answer alone never counts.
 - Record `study_type` for each verified paper.
 
@@ -173,7 +173,7 @@ Pick one or combine:
 
 - [ ] At least 2 distinct `task_id` values in the catalogue
 - [ ] Each has at least 1 row with `decision: supported` and `review_status: human_reviewed`
-- [ ] `paper_id` and `paper_url` present and non-duplicated (check `study_group_id`)
+- [ ] Every supported pair gives the paper ID and URL, quote, location, metric and numerical result. Merge duplicate versions of a study within a task using `study_group_id`.
 - [ ] CSV/JSON exported with every required field and checked with `catalogue/validate.py`
 - [ ] Submitted on Codabench
 
@@ -219,7 +219,7 @@ The catalogue is organised as task → papers, following the schema below: one r
 2. Put that one file in a `.zip`, with the file at the top level of the zip.
 3. Upload the zip under **My Submissions**. You can make 3 submissions per day from Tuesday to Thursday.
 
-The result page shows your score, which of your tasks matched a reference task, and rows with problems (missing paper id, missing evidence, an id that is not in the corpus). It does not show the reference.
+The result page gives a **provisional score** and flags issues such as missing paper IDs or evidence. Keep your runnable script or notebook, queries and any cached replies, plus a short error report with 3–5 findings about misses, false matches or grouping errors. The catalogue is the only file in the submission ZIP.
 
 ### Required catalogue fields (every row)
 
@@ -251,7 +251,7 @@ For availability fields use: `not_checked` / `mentioned_unverified` / `verified_
 
 Also optional: `team` (your team name), `setting` (scientific setting: system, energy, experiment) and `recid` (INSPIRE record id; makes the quote check exact).
 
-### Example row (illustrative only — not from the reference set)
+### Example row (format illustration with a placeholder paper ID)
 
 ```
 field: pp
@@ -265,11 +265,11 @@ study_type: methodological
 paper_id: arXiv:XXXX.XXXXX
 paper_url: https://arxiv.org/abs/XXXX.XXXXX
 study_group_id: sg_XXXXXXX
-match_rationale: Paper trains and evaluates a classifier on particle-level jet inputs with a jet label target, directly establishing the evaluation setting.
-evidence_text: "We evaluate [model] on a jet tagging benchmark using particle-level inputs…"
-evidence_location: abstract
-decision: supported
-review_status: human_reviewed
+match_rationale: Candidate paper on a classifier for particle-level jets. Check its evaluation before marking the row supported.
+evidence_text: ""
+evidence_location: ""
+decision: candidate
+review_status: automated_proposal
 retrieval_method: lexical, query family: jet AND (tagging OR classification)
 ```
 
@@ -279,26 +279,17 @@ retrieval_method: lexical, query family: jet AND (tagging OR classification)
 
 ### Minimum success criterion
 
-> **At least two distinct downstream/benchmark tasks, each supported by one or two correctly matched papers/studies.**
-
-This is a completion threshold, not a retrieval-accuracy target. Focus on getting this right before expanding scope.
+> **Pass with two distinct approved tasks in your field.** For each, your team must check at least one supporting study. João reviews the evidence and confirms passes on Friday.
 
 ### What makes a match correct
 
-A counted match needs an identifiable source (paper ID + link), a quoted passage showing the study performs the task (not just a topical association), and a defensible rationale linking it to a potential benchmark for the stated FM scope. It is **not counted** if it rests on a hallucinated citation, a duplicate paper version, or a paper that only mentions related work.
+A counted match identifies the source by paper ID and link. Quote a passage, give its location, and record the model’s prediction target, metric and numerical result. Explain how the study supports this task and mark the row `human_reviewed` once your team has checked it.
 
-### What you will be evaluated on
+### How scoring works
 
-| Criterion | How it is assessed |
-| --- | --- |
-| Verified task–paper matches | Checked against organizer reference cases; additional valid matches accepted after manual validation |
-| Distinct tasks supported | Count of tasks with at least one correct match |
-| Evidence correctness | Passages exist in the text and genuinely support the interpretation |
+The organizers score coverage of distinct tasks in your field, their supporting studies, and working links to the study’s data or trained model weights. Record data links in `dataset_url` and weight links in `model_code_url`. Check that the link leads to the actual resource. A full reference match scores **100**.
 
-### What is not penalized
-
-- Discovering valid task–paper matches not in the organizer's reference list (they count after validation)
-- Leaving enrichment fields (`dataset_status`, etc.) as `not_checked`
+Each paper outside the reference that you mark `supported` incurs a provisional deduction. A score can fall below zero. When João verifies a new task or supporting study, it earns extra credit and any deduction for the accepted paper is restored. Verified discoveries can take a score above 100. João confirms final credit after reviewing the evidence.
 
 ## Fallbacks and Troubleshooting
 
