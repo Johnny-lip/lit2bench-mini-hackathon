@@ -7,8 +7,8 @@
 | **Venue** | Institut Pascal, Université Paris-Saclay |
 | **Half-day 1** | Tuesday 24 Nov · 9:30–12:30 |
 | **Half-day 2** | Thursday 26 Nov · 9:30–12:30 |
-| **Organizers** | Dr. João A. Gonçalves · Romina Raoofian · Justus Mairböck (University of Bonn · B-IT / Lamarr Institute) |
-| **Contact** | jagoncalves@uni-bonn.de · s28rraoo@uni-bonn.de · s6jumair@uni-bonn.de |
+| **Organizers** | Dr. João A. Gonçalves · Justus Mairböck · Romina Raoofian (University of Bonn · B-IT / Lamarr Institute) |
+| **Contact** | jagoncalves@uni-bonn.de · s6jumair@uni-bonn.de · s28rraoo@uni-bonn.de |
 | **Submission** | Thursday 26 Nov, 16:00 Paris time · your catalogue on Codabench: <https://www.codabench.org/competitions/18675/> |
 
 ## Getting Started
@@ -217,7 +217,7 @@ The catalogue is organised as task → papers, following the schema below: one r
 
 1. Export your catalogue in the handout format: one row per task–paper pair, as `.json` or `.csv`.
 2. Put that one file in a `.zip`, with the file at the top level of the zip.
-3. Upload the zip under **My Submissions**. Up to 5 submissions per day.
+3. Upload the zip under **My Submissions**. You can make 3 submissions per day from Tuesday to Thursday.
 
 The result page shows your score, which of your tasks matched a reference task, and rows with problems (missing paper id, missing evidence, an id that is not in the corpus). It does not show the reference.
 
