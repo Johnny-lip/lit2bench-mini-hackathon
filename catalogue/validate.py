@@ -11,12 +11,14 @@ a task apply to every paper row of that task. These are the layouts the scorer r
 
 Checks
   - every row has the required handout fields; evidence_text for every supported row
-  - allowed values of task_type, study_type, decision, review_status and the availability fields
+  - allowed values of task_type, study_type, decision and the availability statuses
+    (decision: supported = "Valid task paper", uncertain, excluded = "Rejected" in helpers/review_page.py;
+    candidate = not marked yet, scored like an extra uncertain row)
   - recid (optional) is an INSPIRE record id; paper_id looks like an arXiv id, DOI or INSPIRE key
   - no study twice in a task: non-excluded rows of one task with the same study_group_id or paper_id
-  - minimum success criterion: at least two tasks, each with a row that is supported AND human_reviewed
-    (the scorer's PASS rule)
-  - warnings for things the scorer can't use: unknown field values, verified_accessible without a URL
+  - minimum success criterion: at least two tasks, each with a row marked supported ("Valid task paper");
+    the scorer also needs that paper to be in its solution and a total score of zero or more
+  - warnings for things the scorer can't use: unknown fields and field values
 This part needs only the standard library.
 
 With --corpus every evidence_text is also checked against the paper itself: title, abstract and full
@@ -43,16 +45,23 @@ from textutils import quote_match, strip_latex  # noqa: E402  (standard library 
 
 REQUIRED = ["field", "fm_scope", "task_id", "task_label", "task_type", "observable_or_target", "input_modality",
             "study_type", "paper_id", "paper_url", "study_group_id", "match_rationale", "decision",
-            "review_status", "retrieval_method"]
+            "retrieval_method"]
 ALLOWED = {
     "task_type": {"classification", "regression", "reconstruction", "detection", "parameter estimation",
                   "generation", "other"},
     "study_type": {"experimental", "phenomenological", "methodological", "unspecified"},
-    "decision": {"candidate", "supported", "uncertain", "excluded"},
+    "decision": {"candidate", "supported", "uncertain", "excluded", "valid", "valid task paper", "rejected"},
     "review_status": {"automated_proposal", "human_reviewed"},
-    "dataset_status": {"not_checked", "mentioned_unverified", "verified_accessible", "restricted",
-                       "unavailable_confirmed"},
+    "dataset_status": {"available", "unavailable", "not_checked", "yes", "no",
+                       "mentioned_unverified", "verified_accessible", "restricted", "unavailable_confirmed"},
 }
+# display names of the review page -> the values the scorer reads
+DECISION = {"valid": "supported", "valid task paper": "supported", "rejected": "excluded"}
+# fields the scorer or the organizers use; anything else is reported (it is ignored, not an error)
+KNOWN = set(REQUIRED) | {"team", "recid", "title", "setting", "paper_aliases", "evidence_text", "evidence_location",
+                         "dataset_status", "model_code_status", "dataset_url", "model_code_url", "dataset_name",
+                         "model_code_name", "metric", "reported_result", "evaluation_setting", "review_comment",
+                         "review_status"}
 ALLOWED["model_code_status"] = ALLOWED["dataset_status"]
 # field values the scorer recognises (case-insensitive); others are ignored by it
 FIELD_NAMES = {"pp", "proton-proton", "proton proton", "pbpb", "pb-pb", "heavy-ion", "heavy ion", "heavy ions",
@@ -191,9 +200,9 @@ def validate(rows, corpus=None):
         if missing:
             errors.append(f"{where}: missing {', '.join(missing)}")
         for k, allowed in ALLOWED.items():
-            if r.get(k) and r[k] not in allowed:
+            if r.get(k) and r[k].lower() not in allowed:
                 errors.append(f"{where}: {k} {r[k]!r} not in {sorted(allowed)}")
-        dec = r.get("decision", "")
+        dec = DECISION.get(r.get("decision", "").lower(), r.get("decision", "").lower())
         if dec == "supported" and not r.get("evidence_text"):
             errors.append(f"{where}: supported row without evidence_text")
         if r.get("evidence_text") and not r.get("evidence_location"):
@@ -205,9 +214,6 @@ def validate(rows, corpus=None):
         if r.get("field") and r["field"].lower() not in FIELD_NAMES:
             warnings.append(f"{where}: field {r['field']!r} is not recognised by the scorer "
                             "(use pp, PbPb, GW or multimessenger)")
-        for st, url in (("dataset_status", "dataset_url"), ("model_code_status", "model_code_url")):
-            if r.get(st) == "verified_accessible" and not r.get(url):
-                warnings.append(f"{where}: {st} verified_accessible without {url} (earns no availability points)")
         if dec and dec != "excluded":
             for key in ("study_group_id", "paper_id"):
                 k = (r.get("task_id"), key, r.get(key, "").lower())
@@ -215,6 +221,10 @@ def validate(rows, corpus=None):
                     errors.append(f"{where}: same {key} as {seen[k]} in this task: one row per study "
                                   "(exclude the other versions)")
                 seen.setdefault(k, where)
+
+    unknown = sorted({k for r in rows for k in r} - KNOWN)
+    if unknown:
+        warnings.append(f"fields not used by the scorer (ignored): {', '.join(unknown)}")
 
     labels = {}
     for r in rows:
@@ -240,7 +250,7 @@ def validate(rows, corpus=None):
             kind, loc = find_quote(r["evidence_text"], text[rid])
             counts[kind] = counts.get(kind, 0) + 1
             if kind not in FOUND:
-                (errors if r.get("decision") == "supported" else warnings).append(
+                (errors if DECISION.get(r.get("decision", "").lower(), r.get("decision", "").lower()) == "supported" else warnings).append(
                     f"{where}: evidence_text not found in the paper")
             else:
                 said = stated_location(r.get("evidence_location"))
@@ -250,7 +260,7 @@ def validate(rows, corpus=None):
               file=sys.stderr)
 
     passed = {r["task_id"] for r in rows
-              if r.get("task_id") and r.get("decision") == "supported" and r.get("review_status") == "human_reviewed"}
+              if r.get("task_id") and DECISION.get(r.get("decision", "").lower(), r.get("decision", "").lower()) == "supported"}
     return errors, warnings, passed
 
 
@@ -271,9 +281,9 @@ def main():
     for e in errors:
         print("error:", e)
     tasks = {r.get("task_id") for r in rows if r.get("task_id")}
-    n_sup = sum(r.get("decision") == "supported" for r in rows)
+    n_sup = sum(DECISION.get(r.get("decision", "").lower(), r.get("decision", "").lower()) == "supported" for r in rows)
     print(f"{team + ': ' if team else ''}{len(rows)} rows, {len(tasks)} tasks, {n_sup} supported rows; "
-          f"{len(passed)} tasks with a supported + human_reviewed row; minimum criterion (2 such tasks): "
+          f"{len(passed)} tasks with a row marked Valid task paper (supported); minimum criterion (2 such tasks): "
           f"{'met' if len(passed) >= 2 else 'NOT met'}; format: {'valid' if not errors else f'{len(errors)} errors'}")
     sys.exit(0 if not errors and len(passed) >= 2 else 1)
 

@@ -7,14 +7,15 @@
 
 The page is one self-contained HTML file: open it in any browser, no server and no internet
 needed. It shows one card per task-paper row (paper links, task, evidence quote, rationale,
-score, data and code availability) with three buttons: Supported, Uncertain, Excluded, and a
-comment box. Decisions are kept in the browser while you work; "Export decisions" saves
-review_decisions.csv, and "Import decisions" loads such a file again (to continue on another
-machine, or to merge a teammate's review).
+score) with three buttons, "Valid task paper", "Uncertain" and "Rejected", two toggles for whether
+the paper's data and model are available, and a comment box. Decisions are kept in the browser while
+you work; "Export decisions" saves review_decisions.csv, and "Import decisions" loads such a file
+again (to continue on another machine, or to merge a teammate's review).
 
---apply writes the decisions into a copy of the catalogue: decision is replaced,
-review_status becomes human_reviewed and the comment goes to review_comment. Rows without a
-decision are left as they are.
+--apply writes the decisions into a copy of the catalogue: decision becomes supported (Valid task
+paper), uncertain or excluded (Rejected); dataset_status / model_code_status become available or
+unavailable where you marked them; the comment goes to review_comment. Rows without a decision are
+left as they are (an unmarked candidate row still counts as a claim when scored).
 
 Catalogues in the handout format are accepted as CSV, as a JSON list of rows, or as JSON
 {"tasks": [{..., "papers": [rows]}]}. Standard library only.
@@ -100,13 +101,13 @@ def key_of(row):
 def build_page(rows, name):
     items = []
     for r in rows:
-        dec, status = text(r.get("decision")).lower(), text(r.get("review_status")).lower()
-        group = 3 if status == "human_reviewed" or dec == "excluded" else 1 if dec in ("candidate", "uncertain", "") else 2
+        dec = text(r.get("decision")).lower()
+        group = 1 if dec in ("candidate", "") else 2 if dec == "uncertain" else 3
         items.append({
             "k": key_of(r), "g": group, "f": text(r.get("field")), "t": text(r.get("task_id")),
             "tl": text(r.get("task_label")), "tg": text(r.get("observable_or_target")), "inp": text(r.get("input_modality")),
             "id": text(r.get("paper_id")), "ti": title_of(r), "links": paper_links(r),
-            "cd": dec or "none", "rs": status or "not stated", "why": text(r.get("match_rationale")),
+            "cd": {"supported": "Valid task paper", "excluded": "Rejected"}.get(dec, dec or "none"), "why": text(r.get("match_rationale")),
             "ev": text(r.get("evidence_text")), "el": text(r.get("evidence_location")),
             "m": text(r.get("metric")), "rr": text(r.get("reported_result"))[:700], "es": text(r.get("evaluation_setting"))[:300],
             "ds": text(r.get("dataset_status")) or "not_checked", "du": text(r.get("dataset_url")),
@@ -136,10 +137,14 @@ def apply(path, rows, original, decisions_path, out_path):
         if not d:
             continue
         seen.add(key_of(r))
-        choice = text(d.get("decision")).lower()
+        choice = {"valid": "supported", "valid task paper": "supported", "rejected": "excluded"}.get(
+            text(d.get("decision")).lower(), text(d.get("decision")).lower())
         if choice in ("supported", "uncertain", "excluded"):
-            r["decision"], r["review_status"] = choice, "human_reviewed"
+            r["decision"] = choice
             n += 1
+        for col, field in (("data", "dataset_status"), ("model", "model_code_status")):
+            if text(d.get(col)).lower() in ("available", "unavailable"):
+                r[field] = text(d.get(col)).lower()
         if text(d.get("comment")):
             r["review_comment"] = text(d.get("comment"))
     unknown = len(set(dec) - seen)
@@ -151,12 +156,13 @@ def apply(path, rows, original, decisions_path, out_path):
         json.dump(original, open(out_path, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     by = {}
     for r in rows:
-        by[(text(r.get("decision")), text(r.get("review_status")))] = by.get((text(r.get("decision")), text(r.get("review_status"))), 0) + 1
+        by[text(r.get("decision"))] = by.get(text(r.get("decision")), 0) + 1
     print(f"applied {n} decisions to {len(rows)} rows -> {out_path}" + (f" ({unknown} decisions matched no row)" if unknown else ""))
-    for (d, s), c in sorted(by.items()):
-        print(f"  {c:4d}  {d or '(no decision)'} / {s or '(no review status)'}")
-    tasks_ok = {text(r.get("task_id")) for r in rows if text(r.get("decision")) == "supported" and text(r.get("review_status")) == "human_reviewed"}
-    print(f"tasks with a supported, human-reviewed paper: {len(tasks_ok)} (the minimum is 2)")
+    names = {"supported": "Valid task paper (supported)", "excluded": "Rejected (excluded)"}
+    for d, c in sorted(by.items()):
+        print(f"  {c:4d}  {names.get(d, d) or '(no decision)'}")
+    tasks_ok = {text(r.get("task_id")) for r in rows if text(r.get("decision")) == "supported"}
+    print(f"tasks with a paper marked Valid task paper: {len(tasks_ok)} (the minimum is 2, and the paper must be in the solution)")
 
 
 def main():
@@ -216,10 +222,11 @@ dd { margin:0; overflow-wrap:anywhere } dd.quote { border-left:3px solid var(--l
 .decide .seg button[aria-pressed="true"][data-v="uncertain"] { background:var(--warn); color:var(--surface) }
 .decide .seg button[aria-pressed="true"][data-v="excluded"] { background:var(--bad); color:var(--surface) }
 .decide textarea { flex:1 1 260px; height:34px; min-height:34px; resize:vertical; font-size:.9rem } .more { align-self:center }
+.seglabel { font-size:.75rem; color:var(--muted); padding:7px 8px 0; text-transform:uppercase; letter-spacing:.05em }
 @media (max-width:560px) { dl { grid-template-columns:1fr; gap:2px } dt { padding-top:8px } }
 </style></head><body>
 <header class="page"><div class="wrap"><h1>Catalogue review: __NAME__</h1>
-<p class="lede">One card per task–paper row. Open the paper, check that the quoted passage shows the study performs the task, then mark the row. Decisions stay in this browser; export them and run <code>review_page.py --apply</code> to write them into the catalogue.</p></div></header>
+<p class="lede">One card per task–paper row. Open the paper and check that its ML is the main method for the task and that it reports a number for that ML. Then mark it <b>Valid task paper</b>, <b>Uncertain</b> or <b>Rejected</b>, and say whether its data and model are available. Decisions stay in this browser; export them and run <code>review_page.py --apply</code> to write them into the catalogue.</p></div></header>
 <div class="bar"><div class="wrap">
 <div class="progress"><span class="count" id="count"></span><div class="meter" aria-hidden="true"><span id="meter"></span></div><span class="sync" id="sync"></span>
 <button class="act" id="exportBtn" type="button">Export decisions</button><label class="act" for="importFile">Import decisions</label><input type="file" id="importFile" accept=".csv,text/csv" hidden></div>
@@ -233,7 +240,9 @@ dd { margin:0; overflow-wrap:anywhere } dd.quote { border-left:3px solid var(--l
 (function () {
   "use strict";
   var STORE = "__STORE__", PAGE = 40;
-  var GROUPS = { 1: "Needs a decision", 2: "Supported, not yet human-checked", 3: "Already reviewed or excluded" };
+  var GROUPS = { 1: "Needs a decision", 2: "Marked uncertain", 3: "Marked valid or rejected" };
+  var LABEL = { supported: "Valid task paper", uncertain: "Uncertain", excluded: "Rejected" };
+  function avState(s) { s = (s || "").toLowerCase(); return /^(available|verified_accessible|yes)$/.test(s) ? "available" : /^(unavailable|unavailable_confirmed|no)$/.test(s) ? "unavailable" : ""; }
   var AV = { verified_accessible: ["verified accessible", "good"], mentioned_unverified: ["mentioned, not verified", "warn"], unavailable_confirmed: ["confirmed unavailable", "bad"], restricted: ["restricted", "warn"], not_checked: ["not checked", ""] };
   var papers = JSON.parse(document.getElementById("data").textContent), decisions = {}, cards = {};
   var filter = { group: "all", status: "open", task: "all", q: "" }, shown = PAGE, current = [];
@@ -269,7 +278,7 @@ dd { margin:0; overflow-wrap:anywhere } dd.quote { border-left:3px solid var(--l
     meta.appendChild(el("span", "chip" + (p.g === 1 ? " warn" : ""), GROUPS[p.g]));
     if (p.f) meta.appendChild(el("span", "chip", p.f));
     meta.appendChild(el("span", "chip task", p.t));
-    meta.appendChild(el("span", "chip", "in catalogue: " + p.cd + " · " + p.rs.replace("_", " ")));
+    meta.appendChild(el("span", "chip", "in catalogue: " + p.cd));
     c.appendChild(meta);
     c.appendChild(el("h2", null, p.ti || p.id || "(no title)"));
     var links = el("div", "links"); p.links.forEach(function (l) { links.appendChild(link(l[1], l[0])); });
@@ -280,30 +289,44 @@ dd { margin:0; overflow-wrap:anywhere } dd.quote { border-left:3px solid var(--l
     row(dl, "Evidence", txt(p.ev ? p.ev + (p.el ? "  (" + p.el + ")" : "") : ""), "quote");
     row(dl, "Rationale", txt(p.why));
     if (p.m || p.rr) row(dl, "Score", txt([p.m, p.rr, p.es].filter(Boolean).join(" · ")));
-    row(dl, "Dataset", avail(p.ds, p.du)); row(dl, "Model / code", avail(p.cs, p.cu));
+    if (p.du || p.cu) { row(dl, "Dataset", avail(p.ds, p.du)); row(dl, "Model / code", avail(p.cs, p.cu)); }
     if (p.rm) row(dl, "Found by", txt(p.rm));
     c.appendChild(dl);
     var decide = el("div", "decide"), seg = el("div", "seg"), buttons = {};
     ["supported", "uncertain", "excluded"].forEach(function (v) {
-      var b = el("button", null, v.charAt(0).toUpperCase() + v.slice(1)); b.type = "button"; b.dataset.v = v;
+      var b = el("button", null, LABEL[v]); b.type = "button"; b.dataset.v = v;
       b.addEventListener("click", function () { var d = decisions[p.k] || {}; set(p, { decision: d.decision === v ? "" : v }); });
       buttons[v] = b; seg.appendChild(b);
     });
+    var av = {};
+    [["data", "Data"], ["model", "Model"]].forEach(function (x) {
+      var s2 = el("div", "seg"); s2.setAttribute("role", "group"); s2.setAttribute("aria-label", x[1] + " available?");
+      s2.appendChild(el("span", "seglabel", x[1]));
+      ["available", "unavailable"].forEach(function (v) {
+        var b = el("button", null, v === "available" ? "available" : "not available"); b.type = "button"; b.dataset.v = v;
+        b.addEventListener("click", function () { var d = decisions[p.k] || {}, cur = d[x[0]] != null ? d[x[0]] : avState(x[0] === "data" ? p.ds : p.cs), patch = {}; patch[x[0]] = cur === v ? "" : v; set(p, patch); });
+        av[x[0] + v] = b; s2.appendChild(b);
+      });
+      decide.appendChild(s2);
+    });
     var ta = el("textarea"); ta.placeholder = "Comment (optional)"; ta.setAttribute("aria-label", "Comment");
     ta.addEventListener("change", function () { set(p, { comment: ta.value.trim() }); });
-    decide.appendChild(seg); decide.appendChild(ta); c.appendChild(decide);
-    cards[p.k] = { card: c, buttons: buttons, ta: ta }; paint(p.k); return c;
+    decide.insertBefore(seg, decide.firstChild); decide.appendChild(ta); c.appendChild(decide);
+    cards[p.k] = { card: c, buttons: buttons, av: av, ta: ta, p: p }; paint(p.k); return c;
   }
   function paint(k) {
     var c = cards[k]; if (!c) return; var d = decisions[k] || {};
     c.card.dataset.decision = d.decision || "";
     Object.keys(c.buttons).forEach(function (v) { c.buttons[v].setAttribute("aria-pressed", String(d.decision === v)); });
+    ["data", "model"].forEach(function (x) { var cur = d[x] != null ? d[x] : avState(x === "data" ? c.p.ds : c.p.cs);
+      ["available", "unavailable"].forEach(function (v) { c.av[x + v].setAttribute("aria-pressed", String(cur === v)); }); });
     if (document.activeElement !== c.ta) c.ta.value = d.comment || "";
   }
   function set(p, patch) {
     var d = decisions[p.k] || { decision: "", comment: "" };
     if (patch.decision != null) d.decision = patch.decision; if (patch.comment != null) d.comment = patch.comment;
-    if (d.decision || d.comment) decisions[p.k] = d; else delete decisions[p.k];
+    if (patch.data != null) d.data = patch.data; if (patch.model != null) d.model = patch.model;
+    if (d.decision || d.comment || d.data || d.model) decisions[p.k] = d; else delete decisions[p.k];
     paint(p.k); counts(); persist();
   }
   function matches(p) {
@@ -323,8 +346,8 @@ dd { margin:0; overflow-wrap:anywhere } dd.quote { border-left:3px solid var(--l
   }
   function cell(s) { s = String(s == null ? "" : s); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
   $("exportBtn").addEventListener("click", function () {
-    var lines = ["task_id,paper_id,decision,comment,title"];
-    papers.forEach(function (p) { var d = decisions[p.k]; if (d) lines.push([p.t, p.id, d.decision, d.comment, p.ti].map(cell).join(",")); });
+    var lines = ["task_id,paper_id,decision,data,model,comment,title"];
+    papers.forEach(function (p) { var d = decisions[p.k]; if (d) lines.push([p.t, p.id, d.decision, d.data || "", d.model || "", d.comment, p.ti].map(cell).join(",")); });
     var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n") + "\n"], { type: "text/csv" })); a.download = "review_decisions.csv";
     document.body.appendChild(a); a.click(); a.remove(); $("sync").textContent = "Exported " + (lines.length - 1) + " decisions";
   });
@@ -344,7 +367,8 @@ dd { margin:0; overflow-wrap:anywhere } dd.quote { border-left:3px solid var(--l
       var rows = parseCsv(String(r.result)), h = rows.shift() || [], ix = {}, n = 0, known = {};
       h.forEach(function (name, i) { ix[name.trim().replace(/^﻿/, "")] = i; });
       papers.forEach(function (p) { known[p.t + "|" + p.id] = p.k; });
-      rows.forEach(function (x) { var k = known[x[ix.task_id] + "|" + x[ix.paper_id]]; if (k) { decisions[k] = { decision: (x[ix.decision] || "").trim().toLowerCase(), comment: x[ix.comment] || "" }; n++; } });
+      rows.forEach(function (x) { var k = known[x[ix.task_id] + "|" + x[ix.paper_id]]; if (k) { decisions[k] = { decision: (x[ix.decision] || "").trim().toLowerCase(), comment: x[ix.comment] || "",
+        data: ix.data != null ? (x[ix.data] || "").trim().toLowerCase() : undefined, model: ix.model != null ? (x[ix.model] || "").trim().toLowerCase() : undefined }; n++; } });
       persist(); rebuild(); $("sync").textContent = "Imported " + n + " decisions"; e.target.value = "";
     };
     r.readAsText(f);

@@ -22,7 +22,7 @@
     }
   ],
   "$defs": {
-    "status": {"enum": ["not_checked", "mentioned_unverified", "verified_accessible", "restricted", "unavailable_confirmed"]},
+    "status": {"enum": ["available", "unavailable", "not_checked", "mentioned_unverified", "verified_accessible", "restricted", "unavailable_confirmed"]},
     "fields": {
       "type": "object",
       "properties": {
@@ -45,8 +45,8 @@
         "match_rationale": {"type": "string", "minLength": 1},
         "evidence_text": {"type": "string", "description": "Verbatim passage from the paper; required for supported rows"},
         "evidence_location": {"type": "string", "description": "Where in the paper: title, abstract, section: <heading>, page <n>"},
-        "decision": {"enum": ["candidate", "supported", "uncertain", "excluded"]},
-        "review_status": {"enum": ["automated_proposal", "human_reviewed"]},
+        "decision": {"enum": ["supported", "uncertain", "excluded", "candidate", "valid", "valid task paper", "rejected"]},
+        "review_status": {"enum": ["automated_proposal", "human_reviewed"], "description": "optional, no longer used by the scorer"},
         "retrieval_method": {"type": "string", "minLength": 1},
         "dataset_status": {"$ref": "#/$defs/status"},
         "dataset_url": {"type": "string"},

@@ -20,7 +20,6 @@
           "evidence_text": "a matched-filter signal-to-noise ratio of 24",
           "evidence_location": "abstract",
           "decision": "excluded",
-          "review_status": "human_reviewed",
           "retrieval_method": "Organizer-selected published measurement for the format example.",
           "metric": "matched-filter SNR and false-alarm rate (search statistics)",
           "reported_result": "SNR 24, false alarm rate < 1 per 203 000 years",
@@ -43,7 +42,6 @@
           "evidence_text": "These searches identify time-correlated transients in multiple detectors",
           "evidence_location": "abstract; cWB input described in the section titled “cWB pipeline overview”",
           "decision": "excluded",
-          "review_status": "human_reviewed",
           "retrieval_method": "Organizer-selected published measurement for the format example."
         }
       ]
@@ -65,7 +63,6 @@
           "fm_scope": "gravitational-wave detector observations",
           "input_modality": "calibrated strain time series from LIGO Hanford and Livingston",
           "decision": "excluded",
-          "review_status": "human_reviewed",
           "retrieval_method": "Organizer-selected published measurement for the format example.",
           "setting": "GW150914, inference from binary black hole waveform models",
           "match_rationale": "This analysis infers a remnant mass of 62 solar masses, with a 90% credible interval of 58–66 solar masses. Mass is the inferred output. The credible interval describes uncertainty on that event; it is not a trained model’s prediction error.",
@@ -91,7 +88,6 @@
           "evidence_text": "a striking imbalance in dijet transverse momentum is observed",
           "evidence_location": "abstract",
           "decision": "excluded",
-          "review_status": "human_reviewed",
           "retrieval_method": "Organizer-selected published measurement for the format example.",
           "input_modality": "leading and subleading reconstructed calorimeter-jet transverse momenta, with a collision centrality estimate",
           "fm_scope": "calorimeter jets in heavy-ion collisions",

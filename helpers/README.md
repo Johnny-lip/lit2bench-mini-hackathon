@@ -21,7 +21,7 @@ Use them from another folder with `sys.path.insert(0, "<path to>/helpers")`. The
 | `api_errors.py` | Turns API errors into a short cause and fix (used by the client and the monitor) |
 | `api_monitor.py` | Run in a second terminal: calls, errors with fixes, tokens, budget (`python3 api_monitor.py`) |
 | `textutils.py` | `strip_latex()` before prompting, `quote_match()` to check evidence quotes |
-| `review_page.py` | Human review of a catalogue: `python3 review_page.py catalogue.json` writes a self-contained HTML page (one card per task–paper row, Supported / Uncertain / Excluded, export of the decisions); `--apply review_decisions.csv` writes them back with `review_status = human_reviewed` |
+| `review_page.py` | Human review of a catalogue: `python3 review_page.py catalogue.json` writes a self-contained HTML page (one card per task–paper row: mark it **Valid task paper** / **Uncertain** / **Rejected** and say whether its data and model are available; export of the decisions); `--apply review_decisions.csv` writes them back (decision supported / uncertain / excluded, `dataset_status` / `model_code_status` available or unavailable) |
 
 ## Rules for the API
 

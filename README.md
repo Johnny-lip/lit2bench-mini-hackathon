@@ -33,7 +33,7 @@ export ILAAS_API_KEY=...                                     # only for the LLM 
 ```
 
 For Tuesday, download the indexes and metadata for **all five periods** into `corpus/` (about 10 GiB compressed). Search titles and abstracts first. Download full text when a paper needs a closer read. João will give the password during Monday’s briefing. [Download and directory layout](corpus/README.md)
-Check a catalogue with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers).
+Check a catalogue with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers). Review it with `python3 helpers/review_page.py your_catalogue.json`: it writes a page you open in your browser, where you mark each paper **Valid task paper**, **Uncertain** or **Rejected** and say whether its data and model are available; `--apply review_decisions.csv` writes your marks back into the catalogue.
 
 ## What This Hackathon Is About
 
@@ -111,7 +111,7 @@ Pick one or combine:
 - Generic terms like *"classification"* over-assign; look for main-contribution phrasing.
 - Don't hard-exclude a paper just because it compares several tasks or uses vocabulary from more than one area; mark it `uncertain` instead.
 - A measurement paper can suggest a search term. For a supported match, find a study that evaluates a model on that prediction task and reports a numerical result.
-- Keep the list small enough to review; mark each paper `candidate`, `supported`, `uncertain` or `excluded`.
+- Keep the list small enough to review. Your script can give each paper a provisional decision (`candidate`, `uncertain` or `excluded`); you confirm or change it in the review page.
 - Log every query or method — you need it Thursday and for `retrieval_method`.
 
 ### Checkpoint: end of Block 2 (= end of Tuesday)
@@ -140,7 +140,7 @@ Pick one or combine:
 - **Lightweight classifier** — train e.g. logistic regression on TF-IDF features using the papers you labelled on Tuesday.
 - **Embedding re-ranking** — score candidates by similarity to a written task description.
 - **Task clustering** — embed each title with the sentences that say what the paper does ("we propose …"), cluster hierarchically (try a few distance thresholds) and name each cluster by its TF-IDF keywords minus area and method words; keep the clusters that share one task.
-- **LLM screening** — let the LLM API pre-sort abstracts into `candidate` / `uncertain` / `excluded`, kept as `automated_proposal`. LLMs tend to give confident answers and rarely say uncertain on their own; consider running two prompt variants and marking papers where they disagree as uncertain.
+- **LLM screening** — let the LLM API pre-sort abstracts into `candidate` / `uncertain` / `excluded` as provisional decisions. LLMs tend to give confident answers and rarely say uncertain on their own; consider running two prompt variants and marking papers where they disagree as uncertain.
 - **Manual triage** — use titles to rank candidates, then read the most promising studies to check the evidence.
 
 ### Pay attention to
@@ -180,13 +180,13 @@ Pick one or combine:
 
 - **No new infrastructure in this block** — use what you have; the catalogue is the deliverable.
 - Start with two distinct tasks and at least one checked supporting paper per task, then add further studies.
-- A `supported` row needs a quoted `evidence_text`, a `match_rationale` and `review_status: human_reviewed`; an LLM answer alone never counts.
+- Mark papers in the review page (`helpers/review_page.py`) after reading them: **Valid task paper** (`supported`), **Uncertain** or **Rejected** (`excluded`). A Valid task paper needs a quoted `evidence_text` and a `match_rationale`; an LLM answer alone is not a check.
 - Record `study_type` for each verified paper.
 
 ### Checkpoint: minimum success checklist
 
 - [ ] At least 2 distinct `task_id` values in the catalogue
-- [ ] Each has at least 1 row with `decision: supported` and `review_status: human_reviewed`
+- [ ] Each has at least 1 paper you marked **Valid task paper** (`decision: supported`) in the review page
 - [ ] Every supported pair gives the paper ID and URL, quote, location, metric and numerical result. Merge duplicate versions of a study within a task using `study_group_id`.
 - [ ] CSV/JSON exported with every required field and checked with `catalogue/validate.py`
 - [ ] Catalogue submitted on Codabench
@@ -261,15 +261,14 @@ The result page gives a **provisional score** and flags issues such as missing p
 | `match_rationale` | Why this study supports a potential benchmark for this FM scope | Required for every row |
 | `evidence_text` | Quoted passage supporting the match | Required for `supported` decisions |
 | `evidence_location` | Where in the paper (abstract / section / page / figure) | Required for `supported` decisions |
-| `decision` | `candidate` / `supported` / `uncertain` / `excluded` | Every row except `excluded` counts (see Evaluation Criteria) |
-| `review_status` | `automated_proposal` or `human_reviewed` |  |
+| `decision` | `supported` (Valid task paper) / `uncertain` / `excluded` (Rejected), set in the review page; `candidate` = not marked yet | Every row except `excluded` counts (see Evaluation Criteria) |
 | `retrieval_method` | Retrieval method (e.g. `lexical`, `LLM-assisted`) and the query family that produced this row | For reproducibility |
 
 ### Optional enrichment fields
 
-`dataset_status` · `dataset_url` · `model_code_status` · `model_code_url` · `metric` · `reported_result` · `evaluation_setting`
+`dataset_status` · `model_code_status` · `metric` · `reported_result` · `evaluation_setting`
 
-For availability fields use: `not_checked` / `mentioned_unverified` / `verified_accessible` / `restricted` / `unavailable_confirmed`. **Never write `unavailable` just because the abstract is silent.**
+For `dataset_status` and `model_code_status` use `available` or `unavailable` (the review page sets them), or leave `not_checked`. Mark `available` only when the paper’s own data, or its code or trained model weights, can actually be obtained. **Never write `unavailable` just because the abstract is silent.**
 
 Also optional: `team` (your team name), `setting` (scientific setting: system, energy, experiment) and `recid` (INSPIRE record id; makes the quote check exact).
 
@@ -287,11 +286,10 @@ study_type: methodological
 paper_id: arXiv:XXXX.XXXXX
 paper_url: https://arxiv.org/abs/XXXX.XXXXX
 study_group_id: sg_XXXXXXX
-match_rationale: Candidate paper on a classifier for particle-level jets. Check its evaluation before marking the row supported.
+match_rationale: Candidate paper on a classifier for particle-level jets. Check its evaluation before marking it Valid task paper.
 evidence_text: ""
 evidence_location: ""
 decision: candidate
-review_status: automated_proposal
 retrieval_method: lexical, query family: jet AND (tagging OR classification)
 ```
 
@@ -301,17 +299,17 @@ retrieval_method: lexical, query family: jet AND (tagging OR classification)
 
 ### Minimum success criterion
 
-> **Pass with two distinct approved tasks in your field and a total score of zero or more.** A task is approved when one of its correct rows is marked `human_reviewed` by your team. João reviews the evidence and confirms passes on Friday.
+> **Pass with two distinct approved tasks in your field and a total score of zero or more.** A task is approved when one of the papers you marked **Valid task paper** for it is in the solution. João reviews the evidence and confirms passes on Friday.
 
 ### What makes a match correct
 
-A counted match identifies the source by paper ID and link. Quote a passage, give its location, and record the model’s prediction target, metric and numerical result. Explain how the study supports this task and mark the row `human_reviewed` once your team has checked it.
+A counted match identifies the source by paper ID and link. Quote a passage, give its location, and record the model’s prediction target, metric and numerical result. Explain how the study supports this task, and mark the paper **Valid task paper** in the review page once your team has checked it.
 
 A paper counts only if a machine-learning method is its main analysis path for the task and the paper reports how well that method performs it: a number in the text, a value shown in a figure, or a relative gain. Speed or timing alone, or a physics result such as a measured constant, does not count. The paper must belong to your field. Only papers published in a journal count; preprint-only records, conference papers and theses do not.
 
 ### How scoring works
 
-The organizers score coverage of distinct tasks in your field, their supporting studies, and working links to each paper’s own data, code or trained model weights. Record data links in `dataset_url` and code or weight links in `model_code_url`, with status `verified_accessible`. Check that the link leads to the actual resource; bare hosts and organisation pages count for nothing. A full reference match scores **100**.
+The organizers score coverage of distinct tasks in your field, their supporting studies, and whether each paper’s own data and code or trained model weights are available. Mark `dataset_status` and `model_code_status` as `available` when they are; correct marks earn extra points. A full reference match scores **100**.
 
 Every row you submit counts, except rows marked `excluded`. A row outside the reference incurs a provisional deduction; `candidate` and `uncertain` rows cost half as much as `supported` rows. A score can fall below zero. Up to 10 `uncertain` rows per team are reviewed by João after the deadline: accepted discoveries (new tasks or supporting studies) earn extra credit and lose their deduction, so verified discoveries can take a score above 100. João confirms final credit after reviewing the evidence.
 
