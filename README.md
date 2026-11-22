@@ -249,7 +249,7 @@ The result page gives a **provisional score** and flags issues such as missing p
 | --- | --- | --- |
 | `field` | Application area / Scientific field (e.g. `pp`, `PbPb`, `GW`, `multimessenger`) | Do not collapse pp/PbPb |
 | `fm_scope` | Foundation-model context relevant to this study | Describe the intended application or input family |
-| `task_id` | Identifier shared by studies with the same field and prediction objective | E.g. `pp_quark_gluon_tagging` |
+| `task_id` | Identifier shared by studies with the same field and prediction objective, whatever their model, input or metric | E.g. `pp_quark_gluon_tagging` |
 | `task_label` | Human-readable task name | Name the prediction objective |
 | `task_type` | `classification` / `regression` / `reconstruction` / `detection` / `parameter estimation` / `generation` / `other` |  |
 | `observable_or_target` | Physics output: the label, quantity or object being predicted | Give units for a quantity; use `unknown` when the source is insufficient |
@@ -260,8 +260,8 @@ The result page gives a **provisional score** and flags issues such as missing p
 | `study_group_id` | Groups duplicate versions of the same study |  |
 | `match_rationale` | Why this study supports a potential benchmark for this FM scope | Required for every row |
 | `evidence_text` | Quoted passage supporting the match | Required for `supported` decisions |
-| `evidence_location` | Where in the paper (abstract / section / page) |  |
-| `decision` | `candidate` / `supported` / `uncertain` / `excluded` |  |
+| `evidence_location` | Where in the paper (abstract / section / page / figure) | Required for `supported` decisions |
+| `decision` | `candidate` / `supported` / `uncertain` / `excluded` | Every row except `excluded` counts (see Evaluation Criteria) |
 | `review_status` | `automated_proposal` or `human_reviewed` |  |
 | `retrieval_method` | Retrieval method (e.g. `lexical`, `LLM-assisted`) and the query family that produced this row | For reproducibility |
 
@@ -301,17 +301,19 @@ retrieval_method: lexical, query family: jet AND (tagging OR classification)
 
 ### Minimum success criterion
 
-> **Pass with two distinct approved tasks in your field.** For each, your team must check at least one supporting study. João reviews the evidence and confirms passes on Friday.
+> **Pass with two distinct approved tasks in your field and a total score of zero or more.** A task is approved when one of its correct rows is marked `human_reviewed` by your team. João reviews the evidence and confirms passes on Friday.
 
 ### What makes a match correct
 
 A counted match identifies the source by paper ID and link. Quote a passage, give its location, and record the model’s prediction target, metric and numerical result. Explain how the study supports this task and mark the row `human_reviewed` once your team has checked it.
 
+A paper counts only if a machine-learning method is its main analysis path for the task and the paper reports how well that method performs it: a number in the text, a value shown in a figure, or a relative gain. Speed or timing alone, or a physics result such as a measured constant, does not count. The paper must belong to your field.
+
 ### How scoring works
 
-The organizers score coverage of distinct tasks in your field, their supporting studies, and working links to the study’s data or trained model weights. Record data links in `dataset_url` and weight links in `model_code_url`. Check that the link leads to the actual resource. A full reference match scores **100**.
+The organizers score coverage of distinct tasks in your field, their supporting studies, and working links to each paper’s own data, code or trained model weights. Record data links in `dataset_url` and code or weight links in `model_code_url`, with status `verified_accessible`. Check that the link leads to the actual resource; bare hosts and organisation pages count for nothing. A full reference match scores **100**.
 
-Each paper outside the reference that you mark `supported` incurs a provisional deduction. A score can fall below zero. When João verifies a new task or supporting study, it earns extra credit and any deduction for the accepted paper is restored. Verified discoveries can take a score above 100. João confirms final credit after reviewing the evidence.
+Every row you submit counts, except rows marked `excluded`. A row outside the reference incurs a provisional deduction; `candidate` and `uncertain` rows cost half as much as `supported` rows. A score can fall below zero. Up to 10 `uncertain` rows per team are reviewed by João after the deadline: accepted discoveries (new tasks or supporting studies) earn extra credit and lose their deduction, so verified discoveries can take a score above 100. João confirms final credit after reviewing the evidence.
 
 ## Fallbacks and Troubleshooting
 
