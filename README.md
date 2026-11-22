@@ -32,7 +32,7 @@ pip install -r "suggested pipelines/requirements.txt"       # includes helpers/r
 export ILAAS_API_KEY=...                                     # only for the LLM API
 ```
 
-Download one decade of the corpus into `corpus/` to get started. João will give the password during Monday’s briefing. [Download and directory layout](corpus/README.md)
+For Tuesday, download the indexes and metadata for **all five periods** into `corpus/` (about 10 GiB compressed). Search titles and abstracts first. Download full text when a paper needs a closer read. João will give the password during Monday’s briefing. [Download and directory layout](corpus/README.md)
 Check a catalogue with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers).
 
 ## What This Hackathon Is About
@@ -61,16 +61,16 @@ The [worked catalogue](catalogue/example.json) applies this grouping to publishe
 
 ### Goal
 
-Every team member can load the corpus, run the setup of the suggested pipeline (`suggested pipelines/pipeline_01.ipynb`), and read the worked rows in `catalogue/example.json`. Trace one study’s input to its output and check whether the paper evaluates ML on that task.
+Choose a field and run your first search across all five periods of the INSPIRE corpus. Open one paper your search returned. What did its model take as input, and what did it predict? If the paper is a false match, identify what brought it into your results. The worked rows in `catalogue/example.json` show how to record a study’s input and output.
 
 ### Possible approaches
 
 Pick one or combine:
 
-- **Suggested pipeline** — open `suggested pipelines/pipeline_01.ipynb`, run its setup and write the search patterns for your area (sections 1–2) on one decade first. It is a guideline with gaps to fill, not a solution; its later sections and `pipeline_02.ipynb` (with the LLM API) follow Blocks 2–4.
-- **Explore the index** — load one decade's TSV index (e.g. with pandas) and look at the `topics` and `inspire_categories` columns and full-text availability. Filter it by `topics` or by `inspire_categories` (or both) to get your record IDs, then pull those records from that decade's JSONL file.
-- **Hand search** — search a few titles for a task you already know (e.g. jet tagging) and judge the hits yourself.
-- **LLM check** — ask the LLM API whether a sample abstract performs your candidate task, then compare with your own reading.
+- **Suggested pipeline** — in sections 1–2 of the [starter notebook](suggested%20pipelines/pipeline_01.ipynb), write your field’s search patterns and apply them to titles and abstracts across all five metadata files. The later sections and the optional LLM notebook guide Blocks 2–4.
+- **Explore the index** — filter each period’s TSV index by `topics`, `inspire_categories`, or both. Use the selected record IDs to read titles and abstracts from the corresponding metadata files.
+- **Hand search** — try a term for a familiar task (e.g. jet tagging) across all five periods and inspect a few hits yourself.
+- **LLM check** — give the API one retrieved abstract and ask whether the study evaluates ML on your candidate task. Compare its answer with your reading.
 
 ### Pay attention to
 
@@ -81,8 +81,8 @@ Pick one or combine:
 
 ### Checkpoint: end of Block 1
 
-- [ ] Pipeline 1 setup runs and the corpus is queryable
-- [ ] Candidate task named by field and predicted output; one paper’s input recorded
+- [ ] First field search completed across all five periods, or the laptop fallback recorded in the query log
+- [ ] Open one retrieved paper. Record the field, model input and prediction target, or explain why the paper is a false match.
 
 ---
 
@@ -206,7 +206,7 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 
 ### What the organizer provides
 
-- **Corpus** — 1,894,408 INSPIRE-HEP records in **JSONL files**, split by decade. Files are compressed with zstandard; the full release is \~23 GB. Each record contains a record ID, title, abstract, source, and INSPIRE categories. Full text is given in separate files. One TSV index file per decade (e.g. index\_2020s.tsv.zst) holds each record's metadata, including a `topics` column listing its topic pools (one or more, e.g. `pbpb|gw`) and whether abstract and full text are available. Topic pools are not separate downloads: filter each decade's index by its `topics` column to extract your area's records. You can also select by INSPIRE category: the index's `inspire_categories` column holds 17 categories (e.g. Experiment-HEP, Instrumentation, Data Analysis and Statistics). Use a topic pool, one or more categories, or both.
+- **Corpus** — 1,894,408 INSPIRE-HEP records in **JSONL files**, split by decade. Files are compressed with zstandard; the full release is about 23 GiB including full text. Each record contains a record ID, title, abstract, source, and INSPIRE categories. Full text is given in separate files. One TSV index file per decade (e.g. index\_2020s.tsv.zst) holds each record's metadata, including a `topics` column listing its topic pools (one or more, e.g. `pbpb|gw`) and whether abstract and full text are available. Topic pools are not separate downloads: filter each decade's index by its `topics` column to extract your area's records. You can also select by INSPIRE category: the index's `inspire_categories` column holds 17 categories (e.g. Experiment-HEP, Instrumentation, Data Analysis and Statistics). Use a topic pool, one or more categories, or both.
 
   **Most records have no topic.** 1,776,258 of 1,894,408 records (93.8 %) have an empty `topics` column, so the four pools together cover only about 6 % of the corpus. INSPIRE categories cover far more: more than 99.5 % of records from 2010 on have one, while about a third of the records before 2000 have none. A category selection therefore reaches papers that no pool contains, but categories don't separate pp from PbPb or GW from multimessenger, so check the area of each hit.
 - **Starter code** — in the lit2bench-mini-hackathon repository, helpers/: corpus\_extract.py (select papers by topic pool and/or INSPIRE category, stream metadata and full text, save a subset), ilaas\_client.py (API client with retries, response cache and budget logging), api\_monitor.py (live view of calls, errors with fixes, budget) and textutils.py (clean LaTeX, check quotes). Suggested pipelines in suggested pipelines/: pipeline\_01.ipynb (laptop only) and pipeline\_02.ipynb (with the LLM API), guidelines with gaps to fill that follow Blocks 1–4. catalogue/ holds the catalogue format (schema.json, example.json) and validate.py.
@@ -309,7 +309,7 @@ Each paper outside the reference that you mark `supported` incurs a provisional 
 
 | Problem | Fallback action | Output preserved |
 | --- | --- | --- |
-| Corpus too large for your laptop | Restrict to abstracts only (no full text) and limit to a single decade of records | Same task definitions, ranked candidates, catalogue schema |
+| All five metadata files are too large for your laptop | Search titles and abstracts from one decade. Record the decade in your query log so others know what your search covered. | Same task definitions, ranked candidates, catalogue schema |
 | LLM API service unavailable or quota exhausted | Replay your saved responses (ILAAS\_CACHE=1 with the client in helpers/ilaas\_client.py works without key or network); verify the remaining papers manually | Human-verified matches; no unsupported claims of live inference |
 | Full text needed but unavailable in corpus | Open a freely accessible version manually (e.g. arXiv or open-access publisher page); retain unresolved records as `uncertain` | Core matches where evidence is sufficient; enrichment stays optional |
 | Classifier training unstable (too few labels) | Retain the lexical baseline — a stable baseline beats an unstable classifier | Same catalogue |
