@@ -307,7 +307,7 @@ retrieval_method: lexical, query family: jet AND (tagging OR classification)
 
 A counted match identifies the source by paper ID and link. Quote a passage, give its location, and record the model’s prediction target, metric and numerical result. Explain how the study supports this task and mark the row `human_reviewed` once your team has checked it.
 
-A paper counts only if a machine-learning method is its main analysis path for the task and the paper reports how well that method performs it: a number in the text, a value shown in a figure, or a relative gain. Speed or timing alone, or a physics result such as a measured constant, does not count. The paper must belong to your field.
+A paper counts only if a machine-learning method is its main analysis path for the task and the paper reports how well that method performs it: a number in the text, a value shown in a figure, or a relative gain. Speed or timing alone, or a physics result such as a measured constant, does not count. The paper must belong to your field. Only papers published in a journal count; preprint-only records, conference papers and theses do not.
 
 ### How scoring works
 
