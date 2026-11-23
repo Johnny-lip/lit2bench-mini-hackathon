@@ -40,7 +40,9 @@ c.embed("bge-m3", texts)
 - `python3 helpers/api_monitor.py` in a second terminal shows calls, errors with fixes, tokens and budget;
   `--tag screening` limits it to calls whose tag starts with `screening`.
 - The call log `helpers/logs/api_calls.jsonl` holds no paper text (only lengths and hashes), and rerank
-  results never keep the passages the reranker echoes back, so logs and caches can be shared. If you
+  results never keep the passages the reranker echoes back, so logs and caches can be shared. The cache has one
+  folder per endpoint: `cache/chat/` and `cache/rerank/` stay small (a few MB per run), `cache/embeddings/` takes
+  ~20 KB per embedded text and can reach hundreds of MB for a whole field pool. If you
   use your own client, note that `/rerank` returns every document you send.
 
 Plain OpenAI SDK (`pip install openai`), if you prefer it:

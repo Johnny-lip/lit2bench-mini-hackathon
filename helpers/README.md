@@ -17,7 +17,7 @@ Use them from another folder with `sys.path.insert(0, "<path to>/helpers")`. The
 |---|---|
 | `corpus_extract.py` | Select papers by topic pool and/or INSPIRE category (seconds, from the index), stream meta + full text, save a subset with the corpus layout |
 | `index_stats.py` | Counts per topic, INSPIRE category and their combinations (no API) |
-| `ilaas_client.py` | API client: retries, response cache (`ILAAS_CACHE=1`), budget headers, call log in `logs/` without paper text |
+| `ilaas_client.py` | API client: retries, response cache (`ILAAS_CACHE=1`; one folder per endpoint: `logs/cache/chat/`, `rerank/`, `embeddings/`), budget headers, call log in `logs/` without paper text |
 | `api_errors.py` | Turns API errors into a short cause and fix (used by the client and the monitor) |
 | `api_monitor.py` | Run in a second terminal: calls, errors with fixes, tokens, budget (`python3 api_monitor.py`) |
 | `textutils.py` | `strip_latex()` before prompting, `quote_match()` to check evidence quotes |

@@ -189,7 +189,8 @@ Pick one or combine:
 - [ ] Each has at least 1 row with `decision: supported` and `review_status: human_reviewed`
 - [ ] Every supported pair gives the paper ID and URL, quote, location, metric and numerical result. Merge duplicate versions of a study within a task using `study_group_id`.
 - [ ] CSV/JSON exported with every required field and checked with `catalogue/validate.py`
-- [ ] Submitted on Codabench
+- [ ] Catalogue submitted on Codabench
+- [ ] Code and error report emailed to João (jagoncalves@uni-bonn.de)
 
 ## Application Areas
 
@@ -223,7 +224,14 @@ Choose **one** area. Select its papers by topic pool, by INSPIRE category, or bo
 
 ## Deliverable Specification
 
-Submit **one file: your catalogue**, by 16:00 Paris time on Thursday 26 Nov, on Codabench: <https://www.codabench.org/competitions/18675/>.
+Submit **two things** by 16:00 Paris time on Thursday 26 Nov:
+
+1. **Your catalogue** on Codabench: <https://www.codabench.org/competitions/18675/> (below).
+2. **Your code and a short error report** by email to João Gonçalves (jagoncalves@uni-bonn.de):
+   - the runnable notebook or script that reproduces your catalogue, with your queries and, if you used the LLM API, your cached replies: the client's `cache/chat/` and `cache/rerank/` folders (e.g. `outputs_pipeline_02/api_logs/cache/chat/`), a few MB; `cache/embeddings/` is too large to email;
+   - a short error report: 3–5 findings about misses, false matches or grouping errors.
+
+   Send code and cache only, no corpus files (see [`DISCLAIMER.md`](DISCLAIMER.md)).
 
 The catalogue is organised as task → papers, following the schema below: one row per task–paper pair, as CSV, as a JSON list of rows, or as JSON `{"tasks": [{…, "papers": [rows]}]}`. Check it with `python3 catalogue/validate.py your_catalogue.json` (add `--corpus` to check the quotes against the papers).
 
@@ -233,7 +241,7 @@ The catalogue is organised as task → papers, following the schema below: one r
 2. Put that one file in a `.zip`, with the file at the top level of the zip.
 3. Upload the zip under **My Submissions**. You can make 3 submissions per day from Tuesday to Thursday.
 
-The result page gives a **provisional score** and flags issues such as missing paper IDs or evidence. Keep your runnable script or notebook, queries and any cached replies, plus a short error report with 3–5 findings about misses, false matches or grouping errors. The catalogue is the only file in the submission ZIP.
+The result page gives a **provisional score** and flags issues such as missing paper IDs or evidence. The catalogue is the only file in the submission ZIP; code and error report go by email.
 
 ### Required catalogue fields (every row)
 

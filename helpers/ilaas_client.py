@@ -25,9 +25,17 @@ from api_errors import classify, warnings
 BASE_URL = os.environ.get("ILAAS_BASE_URL", "https://llm.aristote.education/v1")
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_FILE = LOG_DIR / "api_calls.jsonl"
-CACHE_DIR = LOG_DIR / "cache"
+CACHE_DIR = LOG_DIR / "cache"     # one subfolder per endpoint: chat/, rerank/, embeddings/ (see cache_path)
 _LOG_LOCK = threading.Lock()
 READ_TIMEOUT_WAIT = 30         # s to wait before retrying after a ReadTimeout (overloaded model)
+
+
+def cache_path(path: str, key: str) -> Path:
+    """Cache file of one response: CACHE_DIR/<endpoint>/<sha1>.json. Chat and rerank answers are small (a few MB
+    per run) and are what a rerun needs; embedding responses are ~20 KB per text and can be left out when
+    sharing the cache (the vectors are usually saved separately anyway)."""
+    endpoint = {"/chat/completions": "chat", "/embeddings": "embeddings", "/rerank": "rerank"}.get(path, "other")
+    return CACHE_DIR / endpoint / f"{key}.json"
 
 
 def _text_stub(x):
@@ -135,9 +143,11 @@ class ILaaSClient:
         cache_file = None
         if self.use_cache and payload is not None:
             key = hashlib.sha1(json.dumps({"path": path, **payload}, sort_keys=True).encode()).hexdigest()
-            cache_file = CACHE_DIR / f"{key}.json"
-            if cache_file.exists() or key in self.bundle:
-                body = json.loads(cache_file.read_text()) if cache_file.exists() else json.loads(json.dumps(self.bundle[key]))
+            cache_file = cache_path(path, key)
+            old_file = CACHE_DIR / f"{key}.json"          # flat layout of caches written before 23 Nov 2026
+            hit = cache_file if cache_file.exists() else old_file if old_file.exists() else None
+            if hit or key in self.bundle:
+                body = json.loads(hit.read_text()) if hit else json.loads(json.dumps(self.bundle[key]))
                 if path.endswith("/rerank"):
                     strip_rerank_documents(body)     # entries cached before the documents were stripped
                 if self.verbose:
@@ -231,7 +241,7 @@ class ILaaSClient:
             if kind != "truncated answer":       # chat() prints its own truncation line
                 _say_hint(kind, hint)
         if cache_file is not None:
-            CACHE_DIR.mkdir(exist_ok=True)
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
             cache_file.write_text(json.dumps(body, ensure_ascii=False))
         body["_meta"] = {"wall_ms": wall_ms, "headers": litellm_headers, "cached": False}
         return body
